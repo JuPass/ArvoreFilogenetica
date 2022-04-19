@@ -1,0 +1,101 @@
+import numpy as np
+
+matriz = np.array([[0, 0.01, 0.3, 0.28],
+                   [0.01, 0, 0.28, 0.27],
+                   [0.3, 0.28, 0, 0.015],
+                   [0.28, 0.27, 0.015, 0]])
+
+
+#L. braziliensis	T. rangeli	T. cruzi	T. gambiae
+#L. braziliensis	0.000	0.010	0.300	0.280
+#T. rangeli     	0.010	0.000	0.280	0.270
+#T. cruzi	        0.300	0.280	0.000	0.015
+#T. gambiae	        0.280	0.270	0.015	0.000
+
+#L. braziliensis = B
+# T. rangeli = R
+# T. cruzi = C
+# T. gambiae = G
+
+nomes = ["B",	"R", 	"C",	"G"]
+
+def faz_arvore(matriz):
+
+    u = []
+    tam_nomes = len(nomes)
+    m = [[0 for j in range(tam_nomes)] for i in range(tam_nomes)]
+
+    #número de itens na lista nomes - 2
+    n_menos_dois = len(nomes) - 2
+
+    #no final apenas junta os dois nodos restantes
+    if (n_menos_dois == 0):
+        nomes[0] = "(" + nomes[0] + "," + nomes[1] + ":" + str(matriz[0, 1]) + ")" #no final só precisa adicionar um valor de distância
+        print(nomes[0])
+        return 0
+
+    #define a lista de u
+    for i in range(len(nomes)):
+        u_i = 0
+        for j in range(len(nomes)):
+            u_i += matriz[i, j]/n_menos_dois
+        u.append(u_i)
+
+    #define a matriz de m_ij
+    for i in range(len(nomes)):
+        for j in range(len(nomes)):
+            m_ij = matriz[i, j] - u[i] - u[j]
+            m[i][j] = m_ij
+
+    #define o menor valor da matriz m
+    menor = m[0][1]
+    endi = 0
+    endj = 1
+    for i in range(len(nomes)):
+        for j in range(len(nomes)):
+            if (i == j): #pula os zeros que é onde tem os nomes iguais
+                continue
+            x = m[i][j]
+            if (x < menor):
+                menor = x
+                endi = i #endereço do menor valor
+                endj = j
+
+    #define a distância até o nodo
+    i = endi
+    j = endj
+
+    vi = (matriz[i, j] + (u[i] - u[j])) /2
+    vj = (matriz[i, j] + (u[j] - u[i])) /2
+
+    #cria árvore
+    nomes[i] = "(" + nomes[i] + ":" + str(vi) + "," + nomes[j] + ":" + str(vj) + ")" #muda o nome de i
+    nome_novo = nomes[i]
+
+    #novas distâncias na matriz
+    new_dist = []
+    valor = matriz[i, j]
+    for x in range(len(nomes)):
+        if (x == i):
+             d = 0
+             new_dist.append(d)
+        elif (x == j):
+            continue
+        else:
+            d = matriz[x, i] + matriz[x, j] - valor
+            new_dist.append(d)
+
+    matriz = np.delete(matriz, j, 0) #deleta a linha
+    matriz = np.delete(matriz, j, 1) #deleta a coluna
+
+    del(nomes[j])
+
+    #substituir valores na matriz por novos valores de distâncias
+    for x in range(len(nomes)):
+        y = nomes.index(nome_novo)
+        matriz[x, y] = new_dist[x]
+        matriz[y, x] = new_dist[x]
+
+    faz_arvore(matriz)
+
+faz_arvore(matriz)
